@@ -3,6 +3,8 @@ import sys, ConfigParser
 
 from crawler import Crawler
 
+from common.configuration import genCfg
+
 def main(seeds,crawl_count):
 
     craw=Crawler(seeds)
@@ -10,8 +12,7 @@ def main(seeds,crawl_count):
 
 if __name__ == "__main__":
 
-    cfg = ConfigParser.ConfigParser()
-    cfg.read('../conf/crawler.ini')
+    cfg = genCfg()
 
     try:
         seeds = cfg.get('agent', 'seeds').split(',')
