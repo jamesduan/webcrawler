@@ -1,6 +1,8 @@
 
 import sys, ConfigParser
 
+from colors import red
+
 from crawler import Crawler
 
 from common.configuration import genCfg
@@ -20,7 +22,7 @@ if __name__ == "__main__":
         main(seeds, int(crawler_count))
 
     except KeyboardInterrupt, interrupt:
-        print "keyboard interrupt error: ", interrupt
+        print red("Cancelled by user type Ctrl+c ")
         sys.exit(1)
     except ValueError, err:
         print "value errr: ", err
@@ -28,3 +30,5 @@ if __name__ == "__main__":
     except Exception, e:
         print "Unkown exception occurred!", e
         sys.exit(1)
+
+

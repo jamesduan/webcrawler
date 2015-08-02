@@ -1,6 +1,6 @@
 #encoding:utf8
 
-import sys, ConfigParser
+import sys, ConfigParser, traceback, json
 
 from bs4 import BeautifulSoup
 import tornado.httpclient
@@ -9,6 +9,9 @@ from colors import yellow, green
 from url_queue import UrlQueue
 from request_sender import send_request
 from common.configuration import genCfg
+
+from common.error_link import *
+
 
 class Crawler:
 
@@ -59,6 +62,7 @@ class Crawler:
                raise ValueError("Fetal error : crawler_count->{num} number is invalid.".format(num=str(crawler_count)))
 
         try:
+
             if flag:
                 while not self.urlQueue.unVisitedUrlsEmpty() and self.urlQueue.getVisitedUrlCount() <= crawl_count-1:
                     self.process()
@@ -67,13 +71,33 @@ class Crawler:
                     self.process()
         except Exception, e:
             print "process error:", e
+            traceback.print_exc()
             sys.exit(1)
 
        ##print self.urlQueue.getUnvisitedUrl()
         print self.urlQueue.getVisitedUrlCount()
         print self.urlQueue.getVisitedUrl()
 
+    def handle_origin_addr(self, orig_addr):
+
+        #flag = []
+
+        #for err_link_name, val in ERROR_LINK.items():
+
+        #    if orig_link == val:
+        #        flag.append(True)
+
+        #if len(flag) == 0:
+        #    return orig_link
+        addr = str(orig_addr)
+        soup = BeautifulSoup(addr, 'html.parser')
+        return soup.find_all('a')[0].get('href').encode('utf-8')
+
     def getHyperLinks(self,url):
+
+        page = {}
+        links = []
+        title_contents = []
 
         cfg = genCfg()
 
@@ -82,31 +106,43 @@ class Crawler:
         server_protocol = cfg.get('agent', 'protocol')
         api = cfg.get('agent', 'api')
 
-        links = []
-        title_contents = []
         data = self.getPageSource(url)
         #print "got html data."
         #print data
 
         if data[0] == "200":
+            try:
+                soup = BeautifulSoup(data[1], "html.parser")
 
-            soup = BeautifulSoup(data[1], "html.parser")
+                #origin_links = []
+                #for d_addr in soup.find_all('a'):
+                #    origin_links.append(d_addr.get('href'))
 
-            for d_addr in soup.find_all('a'):
-                links.append(d_addr.get('href'))
+                #print origin_links
 
-            #for img_addr in soup.find_all('img'):
-            #    links.append(img_addr.get('href'))
-            print soup.title
-            #for link in soup.find_all('a'):
-            #    print link
-            #    links.append(link.get('href'))
+                #for link in map(self.handle_origin_links, origin_links):
+
+                #    if link:
+                #        links.append(link)
+                http_addr = soup.select('a[href^=http://]')
+                https_addr = soup.select('a[href^=https://]')
+
+                links += map(self.handle_origin_addr, http_addr) + \
+                    map(self.handle_origin_addr, https_addr)
+
+#                links = list(set(links))
+
+                print links
+            except ImportError, e:
+                print red('Please install BeautifulSoup4 module first.')
 
             try:
+                page[url] = data[1]
+                print page
                 inner_server_response = send_request(''.join([server_protocol,
                                                     "://", server_ip, ':',
                                                     server_port, api]), 'POST',
-                                                    str(data[1]))
+                                                    json.dumps(page))
 
                 print "-----send reques -----for upload.."
                 if inner_server_response.body is "200":
