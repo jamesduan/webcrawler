@@ -2,6 +2,7 @@
 
 import sys
 from tornado import httpclient
+from tornado.escape import utf8
 
 def send_request(url, method, request_body=None, timeout=100):
 
@@ -25,3 +26,5 @@ def send_request(url, method, request_body=None, timeout=100):
     finally:
         http_client.close()
 
+
+#print utf8(send_request('http://www.baidu.com', 'GET').body)

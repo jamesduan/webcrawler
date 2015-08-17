@@ -1,4 +1,6 @@
 
+# encoding:utf8
+
 import ConfigParser, sys
 
 from colors import red

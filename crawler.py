@@ -4,6 +4,7 @@ import sys, ConfigParser, traceback, json
 
 from bs4 import BeautifulSoup
 import tornado.httpclient
+from tornado.escape import utf8
 from colors import yellow, green
 
 from url_queue import UrlQueue
@@ -107,6 +108,7 @@ class Crawler:
         api = cfg.get('agent', 'api')
 
         data = self.getPageSource(url)
+
         #print "got html data."
         #print data
 
@@ -132,13 +134,15 @@ class Crawler:
 
 #                links = list(set(links))
 
-                print links
+                #print links
             except ImportError, e:
                 print red('Please install BeautifulSoup4 module first.')
 
             try:
+                #code_type = sys.getfilesystemencoding()
+                #print "code type: ", code_type
                 page[url] = data[1]
-                print page
+                #print page
                 inner_server_response = send_request(''.join([server_protocol,
                                                     "://", server_ip, ':',
                                                     server_port, api]), 'POST',
@@ -162,6 +166,7 @@ class Crawler:
             http_response = send_request(url, 'GET')
 
             if http_response.code == 200:
+                #print "page : " , utf8(http_response.body)
                 return ["200",http_response.body]
 
         except Exception,e:

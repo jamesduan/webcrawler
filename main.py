@@ -1,3 +1,4 @@
+# encoding:utf8
 
 import sys, ConfigParser
 
@@ -30,5 +31,4 @@ if __name__ == "__main__":
     except Exception, e:
         print "Unkown exception occurred!", e
         sys.exit(1)
-
 
